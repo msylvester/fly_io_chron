@@ -1,10 +1,13 @@
 import express from 'express';
 import sendRouter from './routes/send';
+import adminRouter from './routes/admin';
 import { startCronJob } from './services/CronJob';
+import logger from './utils/logger';
 
-console.log('=== APPLICATION STARTING ===');
-console.log(`Node version: ${process.version}`);
-console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+logger.info({
+  nodeVersion: process.version,
+  env: process.env.NODE_ENV || 'development',
+}, 'Application starting');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,14 +23,11 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/send', sendRouter);
+app.use('/admin', adminRouter);
 
 app.listen(PORT, () => {
-  console.log('=== SERVER STARTED ===');
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Timestamp: ${new Date().toISOString()}`);
+  logger.info({ port: PORT }, 'Server started');
 
-  // Start cron job after server is running
-  console.log('Starting cron job...');
   const task = startCronJob(PORT);
-  console.log('Cron job started:', task ? 'SUCCESS' : 'FAILED');
+  logger.info({ cronStarted: !!task }, 'Cron job initialization complete');
 });

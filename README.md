@@ -79,3 +79,59 @@ fly deploy
 ```
 
 Runs 24/7 in `sjc` region • 1GB RAM • Shared CPU
+
+---
+
+## 🛠️ Managing the Service
+
+### Start / Stop the Service
+
+```bash
+# Check current status
+fly status --app fly-email-service
+
+# List running machines
+fly machine list --app fly-email-service
+
+# Stop all machines (pause the service)
+fly machine stop --app fly-email-service
+
+# Start machines back up
+fly machine start --app fly-email-service
+
+# Scale down to 0 machines (completely stop)
+fly scale count 0 --app fly-email-service
+
+# Scale back up
+fly scale count 1 --app fly-email-service
+
+# Destroy the app entirely (permanent - use with caution)
+fly apps destroy fly-email-service
+```
+
+---
+
+## 📋 Log Management
+
+### View Logs
+
+```bash
+# Stream live logs
+fly logs --app fly-email-service
+
+# View last 100 log entries
+fly logs --app fly-email-service -n 100
+
+# Filter by region
+fly logs --app fly-email-service --region sjc
+```
+
+### Log Shipping (Optional)
+
+To send logs to external services (Logtail, Datadog, Papertrail, etc.), use [Fly Log Shipper](https://fly.io/docs/going-to-production/monitoring/log-shipper/).
+
+### Reduce Log Volume
+
+The cron runs every 10 seconds, generating frequent logs. To reduce volume:
+- Change schedule in `src/services/CronJob.ts` from `*/10 * * * * *` to less frequent (e.g., `0 * * * *` for hourly)
+- Consider adding log levels (info/debug/error) for filtering

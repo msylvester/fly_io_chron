@@ -1,4 +1,5 @@
 import cron from 'node-cron';
+import logger from '../utils/logger';
 
 const DOMAINS = [
   'example.com',
@@ -23,8 +24,9 @@ function generateRandomEmail(): string {
 async function sendEmailRequest(port: number | string): Promise<void> {
   const email = generateRandomEmail();
   const url = `http://localhost:${port}/send`;
+  const startTime = Date.now();
 
-  console.log(`[Cron] Sending email request to ${email}`);
+  logger.info({ to: email }, 'Sending email request');
 
   try {
     const response = await fetch(url, {
@@ -36,25 +38,27 @@ async function sendEmailRequest(port: number | string): Promise<void> {
     });
 
     const data = await response.json();
+    const durationMs = Date.now() - startTime;
 
     if (response.ok) {
-      console.log(`[Cron] Email sent successfully:`, data);
+      logger.info({ to: email, durationMs, response: data }, 'Email sent successfully');
     } else {
-      console.error(`[Cron] Failed to send email:`, data);
+      logger.error({ to: email, durationMs, response: data, statusCode: response.status }, 'Failed to send email');
     }
   } catch (error) {
-    console.error(`[Cron] Error sending email request:`, error);
+    logger.error({ to: email, err: error }, 'Error sending email request');
   }
 }
 
 export function startCronJob(port: number | string): cron.ScheduledTask {
-  // Run every 10 seconds: "*/10 * * * * *" (6 fields for seconds)
-  const task = cron.schedule('*/10 * * * * *', () => {
-    console.log(`[Cron] Running scheduled email job at ${new Date().toISOString()}`);
+  const schedule = '*/10 * * * * *';
+
+  const task = cron.schedule(schedule, () => {
+    logger.debug({ schedule }, 'Cron job triggered');
     sendEmailRequest(port);
   });
 
-  console.log('[Cron] Email cron job scheduled to run every 10 seconds');
+  logger.info({ schedule, intervalSeconds: 10 }, 'Cron job scheduled');
 
   return task;
 }
