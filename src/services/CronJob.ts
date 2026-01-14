@@ -48,13 +48,13 @@ async function sendEmailRequest(port: number | string): Promise<void> {
 }
 
 export function startCronJob(port: number | string): cron.ScheduledTask {
-  // Run every 10 minutes: "*/10 * * * *"
-  const task = cron.schedule('*/10 * * * *', () => {
+  // Run every 10 seconds: "*/10 * * * * *" (6 fields for seconds)
+  const task = cron.schedule('*/10 * * * * *', () => {
     console.log(`[Cron] Running scheduled email job at ${new Date().toISOString()}`);
     sendEmailRequest(port);
   });
 
-  console.log('[Cron] Email cron job scheduled to run every 10 minutes');
+  console.log('[Cron] Email cron job scheduled to run every 10 seconds');
 
   return task;
 }
